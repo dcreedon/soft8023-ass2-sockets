@@ -1,6 +1,7 @@
 import socket
 
 SERVER = "127.0.0.1"
+#SERVER = "localhost"
 PORT = 64002
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

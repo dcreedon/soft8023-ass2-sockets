@@ -24,8 +24,10 @@ class ClientThread(threading.Thread):
             msg = data.decode()
             print("From client: ", msg)
             if msg == 'bye':
+                print("Bye..Client Disconnecting")
                 break
             elif msg == 'stats':
+                print("Client requested stats")
                 # Message Queue Setup
                 connection = pika.BlockingConnection(pika.ConnectionParameters(host=LOCALHOST))
                 channel = connection.channel()

@@ -3,9 +3,10 @@ import threading
 import pika
 
 #LOCALHOST = "127.0.0.1"
-LOCALHOST = "0.0.0.0"
-
+LOCALHOST = "0.0.0.0"           # to allow docker to bind to external port
 PORT = 64002
+
+RABBITHOST = "127.0.0.1"
 
 class ClientThread(threading.Thread):
 
@@ -31,7 +32,7 @@ class ClientThread(threading.Thread):
             elif msg == 'stats':
                 print("Client requested stats")
                 # Message Queue Setup
-                connection = pika.BlockingConnection(pika.ConnectionParameters(host=LOCALHOST))
+                connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITHOST))
                 channel = connection.channel()
                 queue_name = 'mid-game-stats'
                 channel.queue_declare(queue=queue_name)

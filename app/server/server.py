@@ -6,7 +6,7 @@ import pika
 LOCALHOST = "0.0.0.0"           # to allow docker to bind to external port
 PORT = 64002
 
-RABBITHOST = "0.0.0.0"
+RABBITHOST = "rabbitmq"
 
 class ClientThread(threading.Thread):
 

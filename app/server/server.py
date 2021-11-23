@@ -2,8 +2,8 @@ import socket
 import threading
 import pika
 
-#LOCALHOST = "127.0.0.1"
-LOCALHOST = "0.0.0.0"           # to allow docker to bind to external port
+LOCALHOST = "127.0.0.1"
+#LOCALHOST = "0.0.0.0"           # to allow docker to bind to external port
 PORT = 64002
 
 RABBITHOST = "0.0.0.0"

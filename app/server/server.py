@@ -1,12 +1,31 @@
 import socket
 import threading
 import pika
+import json
 
 #LOCALHOST = "127.0.0.1"
 LOCALHOST = "0.0.0.0"           # to allow docker to bind to external port
 PORT = 64002
 
-RABBITHOST = 'host.docker.internal'
+RABBITHOST = 'host.docker.internal'     # to allow docker to communicate with local rabbit mq installation
+#RABBITHOST = "127.0.0.1"
+
+# Message Queue Setup
+connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITHOST))
+channel = connection.channel()
+queue_name = 'mid-game-stats'
+channel.queue_declare(queue=queue_name)
+
+game_stats= {}  # dictionary to hold game stats, keyed on unique game id
+
+class RabbitThread(threading.Thread):
+
+    def __init__(self, channel):
+        threading.Thread.__init__(self)
+        channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+
+    def run(self):
+        channel.start_consuming()
 
 class ClientThread(threading.Thread):
 
@@ -15,10 +34,6 @@ class ClientThread(threading.Thread):
         self.c_socket = client_socket
         print("Connection no. " + str(identity))
         print("New connection added: ", client_address)
-
-    def callback(self, ch, method, properties, body):
-        print(" [x] %r" % body)
-        self.c_socket.send(bytes(str(body), 'UTF-8'))
 
     def run(self):
 
@@ -31,16 +46,16 @@ class ClientThread(threading.Thread):
                 break
             elif msg == 'stats':
                 print("Client requested stats")
-                # Message Queue Setup
-                connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITHOST))
-                channel = connection.channel()
-                queue_name = 'mid-game-stats'
-                channel.queue_declare(queue=queue_name)
-                channel.basic_consume(queue=queue_name, on_message_callback=self.callback, auto_ack=True)
-                channel.start_consuming()
+                self.c_socket.send(bytes(json.dumps(game_stats), 'UTF-8'))
 
             self.c_socket.send(bytes(msg, 'UTF-8'))
         print("Client disconnected...")
+
+def callback(ch, method, properties, body):
+    temp_stats = body.decode("utf-8")
+    print(temp_stats)
+    temp_dict = json.loads(body.decode("utf-8"))
+    game_stats.update(temp_dict)
 
 
 def serve():
@@ -52,6 +67,11 @@ def serve():
     print("Server started")
     print("Waiting for client request..")
 
+    # Start consuming messages from RabbbitMQ queue
+
+    queue_thread = RabbitThread(channel)
+    queue_thread.start()
+
     counter = 0
 
     while True:
@@ -60,6 +80,7 @@ def serve():
         counter = counter + 1
         new_thread = ClientThread(clientAddress, my_socket, counter)
         new_thread.start()
+
 
 if __name__ == '__main__':
     print("Launching Socket Server...")

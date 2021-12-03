@@ -6,7 +6,8 @@ PORT = 64002
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((SERVER, PORT))
-#client.sendall(bytes("This is from Client", 'UTF-8'))
+client.sendall(bytes("This is from Client", 'UTF-8'))
+print("enter 'bye'added to leave or 'stats' to get the latest stats from the game server")
 
 while True:
     in_data = client.recv(1024)
